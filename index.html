@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Atmospheric: Weather Synth</title>
+    <style>
+        body { background: #1a1a1a; color: #e0e0e0; font-family: sans-serif; text-align: center; padding-top: 50px; }
+        #dashboard { border: 1px solid #444; display: inline-block; padding: 20px; border-radius: 8px; background: #222; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        .data { margin: 15px 0; font-family: monospace; color: #00ffcc; }
+    </style>
+</head>
+<body>
+    <h1>Weather Synth</h1>
+    <div id="dashboard">
+        <input type="text" id="cityInput" placeholder="Enter City (e.g., London)">
+        <button id="startBtn">Fetch & Play</button>
+        <div class="data" id="weatherDisplay">Awaiting data...</div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mandarin Melody Generator</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; }
+  canvas { border: 1px solid black; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h2>Procedural Mandarin Melody Generator</h2>
+
+<input id="inputText" value="ni3 hao3 ma1" size="30">
+<button onclick="playInput()">Play Input</button>
+<button onclick="randomSequence()">Random Melody</button>
+
+<br>
+<canvas id="canvas" width="600" height="200"></canvas>
+
+<script>
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+// Base frequency (A4)
+const BASE_FREQ = 440;
+
+// Tone pitch contours (relative multipliers over time)
+const toneShapes = {
+  1: [1.2, 1.2],           // flat high
+  2: [1.0, 1.3],           // rising
+  3: [1.2, 0.8, 1.1],      // dip
+  4: [1.3, 0.7]            // falling
+};
+
+// Parse "ni3 hao3" → [3, 3]
+function parseTones(text) {
+  return text.split(" ").map(s => {
+    const match = s.match(/(\d)/);
+    return match ? parseInt(match[1]) : 1;
+  });
+}
+
+// Play sequence
+function playTones(tones) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = "sine";
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  let time = audioCtx.currentTime;
+  let durationPerTone = 0.4;
+
+  let fullCurve = [];
+
+  tones.forEach(tone => {
+    let shape = toneShapes[tone];
+    let segmentTime = durationPerTone / (shape.length - 1);
+
+    shape.forEach((val, i) => {
+      let t = time + i * segmentTime;
+      let freq = BASE_FREQ * val;
+      osc.frequency.linearRampToValueAtTime(freq, t);
+      fullCurve.push({ t, freq });
+    });
+
+    time += durationPerTone;
+  });
+
+  gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+
+  osc.start();
+  osc.stop(time);
+
+  drawCurve(fullCurve);
+}
+
+// Visualization
+function drawCurve(curve) {
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (curve.length === 0) return;
+
+  let minF = Math.min(...curve.map(p => p.freq));
+  let maxF = Math.max(...curve.map(p => p.freq));
+
+  ctx.beginPath();
+
+  curve.forEach((p, i) => {
+    let x = (i / curve.length) * canvas.width;
+    let y = canvas.height - ((p.freq - minF) / (maxF - minF)) * canvas.height;
+
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+
+  ctx.stroke();
+}
+
+// UI actions
+function playInput() {
+  const text = document.getElementById("inputText").value;
+  const tones = parseTones(text);
+  playTones(tones);
+}
+
+function randomSequence() {
+  let tones = [];
+  for (let i = 0; i < 6; i++) {
+    tones.push(Math.floor(Math.random() * 4) + 1);
+  }
+  playTones(tones);
+}
+</script>
+
+</body>
+</html> -->
