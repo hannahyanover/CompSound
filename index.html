@@ -36,6 +36,107 @@
 
   </div>
 
+  <!-- ═══ BLOG VIEW ═══ -->
+  <div class="view" id="blog-view">
+    <div class="blog-container">
+  <div class="blog-container">
+
+  <h1>Weather Synth</h1>
+    <p class="blog-author"><strong>By Julia Dudlak & Hannah Yanover</strong></p>
+    <h2>Welcome to the Weather Synth</h2>
+    <p>
+      The Weather Synth is a generative synthesizer that transforms real-time global weather data into music.
+      This idea is called <em>data sonification</em>: instead of looking at a number like “wind speed: 14 meters per second,” you actually hear it.
+    </p>
+
+    <p>
+      When you search for any city, we fetch live temperature, wind speed, humidity, and cloud cover.
+      Each of these values is routed into a different synthesis engine running in parallel.
+    </p>
+
+    <h2>How Weather Becomes Sound</h2>
+    <p>The four weather parameters each drive a distinct layer of sound:</p>
+
+    <ul class="blog-list">
+      <li><strong>Temperature → Pitch:</strong> Hotter cities produce higher drones, while colder cities sit low and dark.</li>
+      <li><strong>Wind Speed → Noise:</strong> Faster wind increases turbulence and raises the resonant frequency.</li>
+      <li><strong>Humidity → Harmonics:</strong> Dry air creates simple tones, while humidity adds rich, layered overtones.</li>
+      <li><strong>Cloud Cover → Rain:</strong> Clear skies are quiet, while overcast conditions generate dense rhythmic drops.</li>
+    </ul>
+
+    <p>
+      The overall sound design aims to balance realism and musicality. Rather than directly simulating
+      environmental audio, we construct an abstracted soundscape that preserves the character of the weather
+      while remaining harmonically coherent.The goal is that every city has a unique sonic fingerprint. You
+      shouldn’t need to look at the screen to tell the difference between two cities. You should be able to hear it.
+    </p>
+
+    <h2>Synthesis Architecture & Web Audio</h2>
+
+    <h3>FM Drone Layer</h3>
+    <p>
+      The drone uses frequency modulation synthesis with a carrier and modulator oscillator.
+      Temperature maps to pitch across a pentatonic scale, ensuring musical output. 
+      We map temperature onto a pentatonic scale rather than a linear frequency range to avoid
+      dissonance and ensure that arbitrary weather changes still produce musically coherent output.
+      We layer a sub-oscillator and a detuned fifth to create a full harmonic texture. 
+      Because weather data updates discretely, we use AudioParam automation 
+      (e.g., <code>linearRampToValueAtTime</code> and <code>setTargetAtTime</code>) to 
+      interpolate between values and avoid discontinuities or audible artifacts.
+    </p>
+
+    <h3>Wind Layer</h3>
+    <p>
+      Wind is generated using subtractive synthesis. White noise is passed through a bandpass filter,
+      with wind speed controlling both frequency and resonance.
+      A slow LFO modulates the filter to simulate natural gusts.
+    </p>
+
+    <h3>Pad Layer</h3>
+    <p>
+      The pad uses additive synthesis. Humidity controls the number of harmonic partials,
+      ranging from sparse tones to dense textures. Each harmonic includes slight modulation,
+      creating a shimmering, chorus-like effect.
+    </p>
+
+    <h3>Rain Layer</h3>
+    <p>
+      Rain is generated through a stochastic process using randomized timing.
+      Each droplet is a short sine burst with a downward pitch envelope,
+      and is spatialized using stereo panning for realism.
+    </p>
+
+    <h3>Reverb & Spatialization</h3>
+    <p>
+      We generate a procedural convolution reverb using an impulse response created in real time.
+      Spatialization is handled with panning so each layer occupies a different position in the sound field.
+    </p>
+
+    <h2>Beyond the Syllabus</h2>
+    <p>
+      One major addition was integrating a live weather API, allowing real-world data to drive the sound automatically.
+      We also implemented spatial audio and procedural reverb, which were not covered in class.
+    </p>
+
+    <p>
+      From the course material, we applied FM synthesis, subtractive synthesis,
+      additive synthesis, and AudioParam automation and ensured all transitions are smooth and click-free.
+    </p>
+
+    <h2>Interface Design</h2>
+    <p>
+      The UI is modeled after the Apple Weather app, with gradient-based city cards,
+      persistent favorites using localStorage, and a detailed view with synth controls.
+    </p>
+
+    <p>
+      The goal was to make the data feel familiar, so the sound feels surprising.
+    </p>
+
+  </div>
+    </div>
+  </div>
+
   <!-- ═══ SEARCH VIEW ═══ -->
   <div class="view" id="search-view">
 
@@ -179,6 +280,15 @@
     <button class="tab-btn" id="tab-search" onclick="switchTab('search')">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       Search
+    </button>
+    <button class="tab-btn" id="tab-blog" onclick="switchTab('blog')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2h9l5 5v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+        <line x1="9" y1="13" x2="15" y2="13"/>
+        <line x1="9" y1="17" x2="15" y2="17"/>
+        <line x1="9" y1="9" x2="10" y2="9"/>
+      </svg>
+      Blog
     </button>
   </div>
 
