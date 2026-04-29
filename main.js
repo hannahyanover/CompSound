@@ -69,6 +69,7 @@ function deleteActiveCity() {
 
 function switchTab(name) {
   if (name === 'search') switchView('search');
+  else if (name === 'blog') switchView('blog');
   else switchView('main');
 }
 
