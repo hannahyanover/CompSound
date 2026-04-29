@@ -1,146 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Atmospheric: Weather Synth</title>
-    <style>
-        body { background: #1a1a1a; color: #e0e0e0; font-family: sans-serif; text-align: center; padding-top: 50px; }
-        #dashboard { border: 1px solid #444; display: inline-block; padding: 20px; border-radius: 8px; background: #222; }
-        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
-        .data { margin: 15px 0; font-family: monospace; color: #00ffcc; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Weather Synth</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Weather Synth</h1>
-    <div id="dashboard">
-        <input type="text" id="cityInput" placeholder="Enter City (e.g., London)">
-        <button id="startBtn">Fetch & Play</button>
-        <div class="data" id="weatherDisplay">Awaiting data...</div>
+
+<div class="app">
+
+  <!-- ═══ MAIN VIEW: city list ═══ -->
+  <div class="view active" id="main-view">
+
+    <div class="cities-header">
+      <h1>Weather</h1>
+      <div class="header-actions">
+        <button class="edit-text-btn" id="editBtn" onclick="toggleEditMode()" style="display:none">Edit</button>
+        <button class="icon-btn" onclick="switchView('search')" title="Search">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
-    <script src="main.js"></script>
+    <div class="city-list" id="cityList">
+      <!-- cards injected by JS -->
+    </div>
+
+    <div class="empty-state" id="emptyState" style="display:none">
+      <div class="empty-icon">🌤</div>
+      <p>No cities yet.<br>Search to add your first city.</p>
+    </div>
+
+  </div>
+
+  <!-- ═══ SEARCH VIEW ═══ -->
+  <div class="view" id="search-view">
+
+    <div style="padding-top: 16px;">
+      <div class="search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Search for a city or airport" oninput="onSearchInput(this.value)" />
+        <button class="cancel-btn" onclick="switchView('main')">Cancel</button>
+      </div>
+    </div>
+
+    <div class="search-results" id="searchResults">
+      <div class="search-hint">Search for a city to add it to your list and tune the synth.</div>
+    </div>
+
+  </div>
+
+  <!-- ═══ DETAIL VIEW ═══ -->
+  <div class="view" id="detail-view">
+
+    <div id="detailHero" class="detail-hero">
+      <button class="detail-back" onclick="switchView('main')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Weather
+      </button>
+      <button class="detail-delete-btn" id="detailDeleteBtn" onclick="deleteActiveCity()" title="Remove city">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      </button>
+      <div class="detail-icon" id="detailIcon">⛅️</div>
+      <div class="detail-city" id="detailCity">—</div>
+      <div class="detail-desc" id="detailDesc">—</div>
+      <div class="detail-temp" id="detailTemp">—<sup>°</sup></div>
+      <div class="detail-range" id="detailRange">H: — L: —</div>
+    </div>
+
+    <div class="detail-body">
+
+      <div class="info-row">
+        <div class="info-card">
+          <div class="ic-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
+            Wind
+          </div>
+          <div class="ic-value" id="dWind">—</div>
+          <div class="ic-sub">m/s</div>
+        </div>
+        <div class="info-card">
+          <div class="ic-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            Humidity
+          </div>
+          <div class="ic-value" id="dHumid">—</div>
+          <div class="ic-sub">%</div>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <div class="info-card">
+          <div class="ic-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            Cloud Cover
+          </div>
+          <div class="ic-value" id="dClouds">—</div>
+          <div class="ic-sub">%</div>
+        </div>
+        <div class="info-card">
+          <div class="ic-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            Feels Like
+          </div>
+          <div class="ic-value" id="dFeels">—</div>
+          <div class="ic-sub">°C</div>
+        </div>
+      </div>
+
+      <!-- Synth controls -->
+      <div class="synth-panel">
+        <div class="synth-panel-header">
+          <h3>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            Weather Synth
+          </h3>
+          <button class="play-pill" id="playBtn" onclick="togglePlay()">
+            <span class="pip"></span>
+            <span id="playLabel">Play</span>
+          </button>
+        </div>
+
+        <div class="viz-strip"><canvas id="viz"></canvas></div>
+
+        <div class="synth-layer">
+          <div class="layer-header">
+            <span class="layer-label"><span class="layer-dot" style="background:#fbbf24"></span>Drone — temp → pitch</span>
+            <span class="layer-val" id="vDrone">0.70</span>
+          </div>
+          <input type="range" id="droneMix" min="0" max="1" step="0.01" value="0.7" oninput="setParam('drone','mix',this.value);document.getElementById('vDrone').textContent=parseFloat(this.value).toFixed(2)">
+        </div>
+
+        <div class="synth-layer">
+          <div class="layer-header">
+            <span class="layer-label"><span class="layer-dot" style="background:#34d399"></span>Wind — bandpass noise</span>
+            <span class="layer-val" id="vWind">0.50</span>
+          </div>
+          <input type="range" id="windMix" min="0" max="1" step="0.01" value="0.5" oninput="setParam('wind','mix',this.value);document.getElementById('vWind').textContent=parseFloat(this.value).toFixed(2)">
+        </div>
+
+        <div class="synth-layer">
+          <div class="layer-header">
+            <span class="layer-label"><span class="layer-dot" style="background:#38bdf8"></span>Pad — humidity → harmonics</span>
+            <span class="layer-val" id="vPad">0.40</span>
+          </div>
+          <input type="range" id="padMix" min="0" max="1" step="0.01" value="0.4" oninput="setParam('pad','mix',this.value);document.getElementById('vPad').textContent=parseFloat(this.value).toFixed(2)">
+        </div>
+
+        <div class="synth-layer">
+          <div class="layer-header">
+            <span class="layer-label"><span class="layer-dot" style="background:#818cf8"></span>Rain — cloud cover → density</span>
+            <span class="layer-val" id="vRain">0.50</span>
+          </div>
+          <input type="range" id="rainMix" min="0" max="1" step="0.01" value="0.5" oninput="setParam('rain','mix',this.value);document.getElementById('vRain').textContent=parseFloat(this.value).toFixed(2)">
+        </div>
+
+        <div class="vol-row">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg>
+          <input type="range" id="masterVol" min="0" max="1" step="0.01" value="0.7" oninput="setMasterVolume(this.value)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Bottom tab bar ═══ -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-main" onclick="switchTab('main')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/></svg>
+      Cities
+    </button>
+    <button class="tab-btn" id="tab-search" onclick="switchTab('search')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Search
+    </button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="main.js"></script>
 </body>
 </html>
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Mandarin Melody Generator</title>
-<style>
-  body { font-family: sans-serif; padding: 20px; }
-  canvas { border: 1px solid black; margin-top: 10px; }
-</style>
-</head>
-<body>
-
-<h2>Procedural Mandarin Melody Generator</h2>
-
-<input id="inputText" value="ni3 hao3 ma1" size="30">
-<button onclick="playInput()">Play Input</button>
-<button onclick="randomSequence()">Random Melody</button>
-
-<br>
-<canvas id="canvas" width="600" height="200"></canvas>
-
-<script>
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-// Base frequency (A4)
-const BASE_FREQ = 440;
-
-// Tone pitch contours (relative multipliers over time)
-const toneShapes = {
-  1: [1.2, 1.2],           // flat high
-  2: [1.0, 1.3],           // rising
-  3: [1.2, 0.8, 1.1],      // dip
-  4: [1.3, 0.7]            // falling
-};
-
-// Parse "ni3 hao3" → [3, 3]
-function parseTones(text) {
-  return text.split(" ").map(s => {
-    const match = s.match(/(\d)/);
-    return match ? parseInt(match[1]) : 1;
-  });
-}
-
-// Play sequence
-function playTones(tones) {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-
-  osc.type = "sine";
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-
-  let time = audioCtx.currentTime;
-  let durationPerTone = 0.4;
-
-  let fullCurve = [];
-
-  tones.forEach(tone => {
-    let shape = toneShapes[tone];
-    let segmentTime = durationPerTone / (shape.length - 1);
-
-    shape.forEach((val, i) => {
-      let t = time + i * segmentTime;
-      let freq = BASE_FREQ * val;
-      osc.frequency.linearRampToValueAtTime(freq, t);
-      fullCurve.push({ t, freq });
-    });
-
-    time += durationPerTone;
-  });
-
-  gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-
-  osc.start();
-  osc.stop(time);
-
-  drawCurve(fullCurve);
-}
-
-// Visualization
-function drawCurve(curve) {
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  if (curve.length === 0) return;
-
-  let minF = Math.min(...curve.map(p => p.freq));
-  let maxF = Math.max(...curve.map(p => p.freq));
-
-  ctx.beginPath();
-
-  curve.forEach((p, i) => {
-    let x = (i / curve.length) * canvas.width;
-    let y = canvas.height - ((p.freq - minF) / (maxF - minF)) * canvas.height;
-
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-
-  ctx.stroke();
-}
-
-// UI actions
-function playInput() {
-  const text = document.getElementById("inputText").value;
-  const tones = parseTones(text);
-  playTones(tones);
-}
-
-function randomSequence() {
-  let tones = [];
-  for (let i = 0; i < 6; i++) {
-    tones.push(Math.floor(Math.random() * 4) + 1);
-  }
-  playTones(tones);
-}
-</script>
-
-</body>
-</html> -->
