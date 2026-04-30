@@ -34,6 +34,16 @@ function switchView(name) {
   document.getElementById(name + '-view').classList.add('active');
   currentView = name;
 
+  // Stop audio when navigating away from detail view
+  if (name !== 'detail' && isPlaying) {
+    stopSynth();
+    isPlaying = false;
+    const btn = document.getElementById('playBtn');
+    const label = document.getElementById('playLabel');
+    if (btn) btn.classList.remove('playing');
+    if (label) label.textContent = 'Play';
+  }
+
   // Reset edit mode when returning to main
   if (name === 'main') {
     editMode = false;
@@ -149,7 +159,6 @@ function toggleEditMode() {
 function deleteCity(idx, e) {
   e.stopPropagation();
   const name = cities[idx].name;
-  // If this city is playing, stop synth
   if (isPlaying && activeCity && activeCity.name === name) {
     stopSynth();
     isPlaying = false;
@@ -165,7 +174,6 @@ function renderCityList() {
   const empty = document.getElementById('emptyState');
   const editBtn = document.getElementById('editBtn');
 
-  // Show/hide Edit button based on whether there are cities
   if (editBtn) editBtn.style.display = cities.length > 0 ? 'inline-block' : 'none';
 
   if (cities.length === 0) {
@@ -206,7 +214,6 @@ function openCity(idx) {
   const c = cities[idx];
   activeCity = c;
 
-  // Hero background
   const hero = document.getElementById('detailHero');
   hero.className = 'detail-hero ' + conditionClass(c.icon, c.id);
 
@@ -222,7 +229,6 @@ function openCity(idx) {
 
   tuneToWeather(c);
   switchView('detail');
-  // Size canvas now that detail view is visible
   requestAnimationFrame(resizeCanvas);
 }
 
@@ -541,19 +547,29 @@ function startRain(cloudCover) {
 }
 
 function stopSynth() {
+  const t = audioCtx.currentTime;
+  const fadeTime = 0.08;  // short time constant = quick but still smooth, no click
+  const stopDelay = 400;  // ms: enough time for fade to finish before killing oscillators
+
   if (droneNodes) {
-    droneNodes.gain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5);
-    setTimeout(() => { try { droneNodes.oscs.forEach(o => o.stop()); } catch(e){} }, 2000);
+    droneNodes.gain.gain.cancelScheduledValues(t);
+    droneNodes.gain.gain.setTargetAtTime(0, t, fadeTime);
+    const nodes = droneNodes;
+    setTimeout(() => { try { nodes.oscs.forEach(o => o.stop()); } catch(e){} }, stopDelay);
     droneNodes = null;
   }
   if (windNodes) {
-    windNodes.gain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5);
-    setTimeout(() => { try { windNodes.src.stop(); windNodes.lfo.stop(); } catch(e){} }, 2000);
+    windNodes.gain.gain.cancelScheduledValues(t);
+    windNodes.gain.gain.setTargetAtTime(0, t, fadeTime);
+    const nodes = windNodes;
+    setTimeout(() => { try { nodes.src.stop(); nodes.lfo.stop(); } catch(e){} }, stopDelay);
     windNodes = null;
   }
   if (padNodes) {
-    padNodes.gain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5);
-    setTimeout(() => { try { padNodes.oscs.forEach(o => o.stop()); } catch(e){} }, 2000);
+    padNodes.gain.gain.cancelScheduledValues(t);
+    padNodes.gain.gain.setTargetAtTime(0, t, fadeTime);
+    const nodes = padNodes;
+    setTimeout(() => { try { nodes.oscs.forEach(o => o.stop()); } catch(e){} }, stopDelay);
     padNodes = null;
   }
   if (rainTimeout) { clearTimeout(rainTimeout); rainTimeout = null; }
